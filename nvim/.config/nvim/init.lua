@@ -47,7 +47,7 @@ require("lazy").setup({
             require("nvim-treesitter.install").compilers = { "clang", "gcc" }
             require("nvim-treesitter.configs").setup {
                 highlight = { enable = true },
-                ensure_installed = { "lua", "python", "javascript", "c", "cpp", "rust" },
+                ensure_installed = { "lua", "python", "javascript", "c", "cpp", "rust", "go" },
             }
         end
     },

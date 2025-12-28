@@ -14,19 +14,16 @@
         "hyprland/window"
     ],
     "modules-right": [
-        "idle_inhibitor",
         "custom/supergfx",
         "pulseaudio",
         "network",
         "cpu",
         "memory",
-        "temperature",
         "battery",
         "battery#bat2",
         "clock",
         "custom/powermenu"
     ],
-    //Modules configuration
 
     "include": [
 	"~/.config/waybar/modules.json"

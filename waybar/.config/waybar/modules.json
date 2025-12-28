@@ -7,7 +7,8 @@
     "custom/powermenu": {
         "exec": "echo '⏻'",
         "interval": 0,
-        "on-click": "~/.config/waybar/scripts/power_menu.sh"
+        // "on-click": "~/.config/waybar/scripts/power_menu.sh"
+        "on-click": "~/.config/rofi/powermenu/type-1/powermenu.sh"
     },
 
     "custom/supergfx": {
