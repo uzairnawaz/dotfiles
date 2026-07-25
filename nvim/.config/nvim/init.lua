@@ -47,7 +47,7 @@ require("lazy").setup({
             require("nvim-treesitter.install").compilers = { "clang", "gcc" }
             require("nvim-treesitter.configs").setup {
                 highlight = { enable = true },
-                ensure_installed = { "lua", "python", "javascript", "c", "cpp", "rust", "go" },
+                ensure_installed = { "lua", "python", "javascript", "c", "cpp", "rust", "go", "wgsl" },
             }
         end
     },
@@ -87,7 +87,7 @@ require("lazy").setup({
         config = function()
             require("mason").setup()
             require("mason-lspconfig").setup({
-                ensure_installed = { "lua_ls", "pyright", "clangd", "rust_analyzer" }, -- add more as needed
+                ensure_installed = { "lua_ls", "pyright", "clangd", "rust_analyzer", "ts_ls" }, -- add more as needed
                 automatic_installation = true,
             })
 
@@ -183,7 +183,7 @@ require("lazy").setup({
 
     {
         'MeanderingProgrammer/render-markdown.nvim',
-        dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' },            -- if you use the mini.nvim suite
+        dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' }, -- if you use the mini.nvim suite
         -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' },        -- if you use standalone mini plugins
         -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
         ---@module 'render-markdown'
