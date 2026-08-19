@@ -24,7 +24,6 @@ vim.cmd([[set shiftwidth=4]])
 
 vim.keymap.set('n', 'gl', vim.diagnostic.open_float, { desc = "LSP: show diagnostic message" })
 
-
 -- Install lazy.nvim plugin manager if it's not installed
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -47,7 +46,7 @@ require("lazy").setup({
             require("nvim-treesitter.install").compilers = { "clang", "gcc" }
             require("nvim-treesitter.configs").setup {
                 highlight = { enable = true },
-                ensure_installed = { "lua", "python", "javascript", "c", "cpp", "rust", "go", "wgsl" },
+                ensure_installed = { "lua", "python", "javascript", "java", "c", "cpp", "rust", "go", "wgsl" },
             }
         end
     },
@@ -77,7 +76,13 @@ require("lazy").setup({
             })
         end,
     },
-    -- LSP & auto-installer
+    {
+        "nvim-java/nvim-java",
+        config = function()
+            require("java").setup()
+            vim.lsp.enable("jdtls")
+        end,
+    },
     {
         "neovim/nvim-lspconfig",
         dependencies = {
@@ -86,47 +91,49 @@ require("lazy").setup({
         },
         config = function()
             require("mason").setup()
+            -- automatic_enable (on by default) runs vim.lsp.enable() for installed servers
             require("mason-lspconfig").setup({
                 ensure_installed = { "lua_ls", "pyright", "clangd", "rust_analyzer", "ts_ls" }, -- add more as needed
-                automatic_installation = true,
             })
 
-            local capabilities = require("cmp_nvim_lsp").default_capabilities()
-            local lspconfig = require("lspconfig")
+            -- Merged into every server's config
+            vim.lsp.config("*", {
+                capabilities = require("cmp_nvim_lsp").default_capabilities(),
+            })
 
-            local on_attach = function(_, bufnr)
-                local map = function(mode, lhs, rhs, desc)
-                    vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
-                end
+            -- Mason's rust-analyzer build requires rustc >= 1.94, but some
+            -- projects pin an older toolchain via rust-toolchain.toml (e.g.
+            -- cosmic-comp pins 1.93). Force the LSP process itself to use
+            -- the newer `stable` toolchain for its own analysis; this only
+            -- affects rust-analyzer's env, not `cargo build` in a shell.
+            vim.lsp.config("rust_analyzer", {
+                cmd_env = {
+                    RUSTUP_TOOLCHAIN = "stable",
+                },
+            })
 
-                -- Example LSP keybinds
-                map("n", "gd", vim.lsp.buf.definition, "Go to Definition")
+            vim.api.nvim_create_autocmd("LspAttach", {
+                callback = function(args)
+                    local map = function(mode, lhs, rhs, desc)
+                        vim.keymap.set(mode, lhs, rhs, { buffer = args.buf, desc = desc })
+                    end
 
-                map('n', '<leader>e', vim.diagnostic.open_float, "Show diagnostic message")
-                -- map("n", "K", vim.lsp.buf.hover, "Hover Documentation")
-                -- map("n", "<leader>rn", vim.lsp.buf.rename, "Rename Symbol")
-                -- map("n", "<leader>ca", vim.lsp.buf.code_action, "Code Action")
+                    -- Example LSP keybinds
+                    map("n", "gd", vim.lsp.buf.definition, "Go to Definition")
 
-                -- Format buffer
-                map("n", "<leader>i", function()
-                    vim.lsp.buf.format({ async = true })
-                end, "Format Code")
-            end
+                    map('n', '<leader>e', vim.diagnostic.open_float, "Show diagnostic message")
+                    -- map("n", "K", vim.lsp.buf.hover, "Hover Documentation")
+                    -- map("n", "<leader>rn", vim.lsp.buf.rename, "Rename Symbol")
+                    -- map("n", "<leader>ca", vim.lsp.buf.code_action, "Code Action")
 
-            for _, server in ipairs(require("mason-lspconfig").get_installed_servers()) do
-                local ok, cfg = pcall(require, "lspconfig." .. server)
-                if ok then
-                    cfg.setup({
-                        capabilities = capabilities,
-                    })
-                end
-                lspconfig[server].setup({
-                    on_attach = on_attach
-                })
-            end
+                    -- Format buffer
+                    map("n", "<leader>i", function()
+                        vim.lsp.buf.format({ async = true })
+                    end, "Format Code")
+                end,
+            })
         end,
     },
-
     {
         'nvim-telescope/telescope.nvim',
         dependencies = { 'nvim-lua/plenary.nvim' },
@@ -148,7 +155,6 @@ require("lazy").setup({
             })
         end,
     },
-
     {
         'ThePrimeagen/harpoon',
         branch = 'harpoon2', -- use latest version
@@ -170,7 +176,6 @@ require("lazy").setup({
             { "<leader>h4", function() require("harpoon"):list():select(4) end,                                desc = "Harpoon to File 4" },
         }
     },
-
     {
         "lervag/vimtex",
         ft = { "tex", "plaintex", "latex" },
@@ -180,15 +185,45 @@ require("lazy").setup({
             vim.g.vimtex_view_general_options = '--synctex-forward @line:@col:@tex --fork @pdf'
         end
     },
-
     {
-        'MeanderingProgrammer/render-markdown.nvim',
-        dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.nvim' }, -- if you use the mini.nvim suite
-        -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' },        -- if you use standalone mini plugins
-        -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
-        ---@module 'render-markdown'
-        ---@type render.md.UserConfig
-        opts = {},
-    }
+        "lewis6991/gitsigns.nvim"
+    },
+    {
+        'sindrets/diffview.nvim'
+    },
+    {
+        'nvim-tree/nvim-web-devicons',
+    },
+    {
+        "christoomey/vim-tmux-navigator",
+        cmd = {
+            "TmuxNavigateLeft",
+            "TmuxNavigateDown",
+            "TmuxNavigateUp",
+            "TmuxNavigateRight",
+            "TmuxNavigatePrevious",
+            "TmuxNavigatorProcessList",
+        },
+        keys = {
+            { "<M-h>",  "<cmd>TmuxNavigateLeft<cr>" },
+            { "<M-j>",  "<cmd>TmuxNavigateDown<cr>" },
+            { "<M-k>",  "<cmd>TmuxNavigateUp<cr>" },
+            { "<M-l>",  "<cmd>TmuxNavigateRight<cr>" },
+            { "<M-\\>", "<cmd>TmuxNavigatePrevious<cr>" },
+        },
+    },
+    {
+        "mrjones2014/smart-splits.nvim",
+        config = function()
+            require("smart-splits").setup({
+                default_amount = 3,
+            })
 
+            local ss = require("smart-splits")
+            vim.keymap.set("n", "<C-M-h>", ss.resize_left)
+            vim.keymap.set("n", "<C-M-j>", ss.resize_down)
+            vim.keymap.set("n", "<C-M-k>", ss.resize_up)
+            vim.keymap.set("n", "<C-M-l>", ss.resize_right)
+        end,
+    }
 })
